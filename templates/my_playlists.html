@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Playlists</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top, #001d2f, #000);
+      color: #eee;
+      min-height: 100vh;
+      padding: 2rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 3rem auto;
+      padding: 2rem 2.5rem;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.3);
+      position: relative;
+      animation: floatIn 1s ease;
+    }
+
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 2rem;
+      color: #0ff;
+      margin-bottom: 1.5rem;
+    }
+
+    .playlist-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .playlist-item {
+      background: rgba(0, 255, 255, 0.05);
+      border: 1px solid rgba(0, 255, 255, 0.2);
+      padding: 1.2rem 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .playlist-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    }
+
+    .playlist-link {
+      font-size: 1.1rem;
+      color: #0ff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .created-time {
+      font-size: 0.85rem;
+      color: #ccc;
+      margin-top: 5px;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.4rem 0.9rem;
+      background: #ff1744;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .delete-btn:hover {
+      background-color: #c51135;
+    }
+
+    .no-playlists {
+      text-align: center;
+      margin-top: 2rem;
+      color: #ccc;
+      font-size: 1.1rem;
+    }
+
+    .floating-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #0ff;
+      color: #000;
+      font-size: 24px;
+      border: none;
+      border-radius: 50%;
+      width: 55px;
+      height: 55px;
+      box-shadow: 0 0 15px #0ff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+      z-index: 100;
+    }
+
+    .floating-btn:hover {
+      transform: scale(1.1) rotate(90deg);
+    }
+
+    .back-btn {
+      display: block;
+      margin: 2rem auto 0;
+      padding: 0.7rem 2rem;
+      background-color: #0ff;
+      color: #000;
+      text-decoration: none;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 500;
+      width: fit-content;
+      box-shadow: 0 0 10px #0ff;
+      transition: background 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: #00cccc;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.5rem;
+        margin: 2rem 1rem;
+      }
+
+      .playlist-item {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Your Saved Playlists</h2>
+
+    {% if playlists %}
+    <ul class="playlist-list">
+      {% for p in playlists %}
+      <li class="playlist-item">
+        <a href="{{ url_for('view_playlist', playlist_id=p._id) }}" class="playlist-link">{{ p.playlist_name }}</a>
+        <div class="created-time">
+          Created on {{ p.created_at.strftime("%Y-%m-%d %H:%M") }}
+        </div>
+        <button class="delete-btn" data-id="{{ p._id }}">Delete</button>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="no-playlists">No playlists saved yet.</p>
+    {% endif %}
+
+    <a href="{{ url_for('home') }}" class="back-btn">← Back to Home</a>
+  </div>
+
+  <!-- Floating Add Playlist Button -->
+  <button class="floating-btn" title="Add Playlist">
+    <i class="fa fa-plus"></i>
+  </button>
+
+  <script>
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        if (confirm('Delete this playlist?')) {
+          const res = await fetch(`/delete_playlist/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            btn.closest('li').remove();
+            if (!document.querySelectorAll('.playlist-item').length) {
+              document.querySelector('.container').innerHTML += '<p class="no-playlists">No playlists saved yet.</p>';
+            }
+          } else {
+            alert('Error deleting playlist.');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Profile</title>
+
+  <!-- Fonts & Bootstrap -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <style>
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: radial-gradient(circle at top left, #e0f7fa, #b2dfdb);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    animation: fadeIn 1s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .profile-container {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(0, 123, 107, 0.25);
+    width: 100%;
+    max-width: 520px;
+    text-align: center;
+    animation: floatCard 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes floatCard {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(-5px); }
+  }
+
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #80cbc4, #4db6ac);
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.15), 0 0 20px #4db6ac;
+    transition: transform 0.3s ease;
+  }
+
+  .profile-avatar:hover {
+    transform: scale(1.05);
+  }
+
+  h2 {
+    color: #004d40;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    font-size: 1.9rem;
+  }
+
+  .profile-info {
+    margin: 0.8rem 0;
+    font-size: 1.1rem;
+    color: #333;
+  }
+
+  .profile-info strong {
+    color: #00796b;
+  }
+
+  .change-btn, .home-btn, .logout-btn, .membership-btn {
+    margin-top: 1rem;
+    background-color: #00796b;
+    color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 0 10px rgba(0, 150, 136, 0.3);
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  }
+
+  .change-btn:hover, .home-btn:hover, .logout-btn:hover, .membership-btn:hover {
+    background-color: #004d40;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 150, 136, 0.5);
+  }
+
+  .flash-message {
+    padding: 15px;
+    margin: 20px auto;
+    border-radius: 8px;
+    font-size: 16px;
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
+    transition: opacity 0.5s ease;
+  }
+
+  .flash-message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .flash-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+
+  .modal-content {
+    border-radius: 14px;
+    padding: 1rem;
+    background-color: #f7fefc;
+    box-shadow: 0 0 20px rgba(0,123,107,0.15);
+  }
+
+  .modal-header, .modal-footer {
+    border: none;
+  }
+
+  @media (max-width: 480px) {
+    .profile-container {
+      padding: 1.5rem;
+      margin: 1rem;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+    }
+
+    .profile-info {
+      font-size: 1rem;
+    }
+  }
+</style>
+  <title>User Profile</title>
+
+  <script>
+    function validatePasswordChangeForm() {
+      const newPassword = document.getElementById("modalNewPassword").value;
+      const confirmPassword = document.getElementById("modalConfirmPassword").value;
+
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]{8,}$/;
+
+      if (!passwordRegex.test(newPassword)) {
+        alert("Password must be at least 8 characters and include uppercase, lowercase, number, and special character.");
+        return false;
+      }
+
+      if (newPassword !== confirmPassword) {
+        alert("New password and confirmation do not match.");
+        return false;
+      }
+
+      return true;
+    }
+  </script>
+</head>
+<body>
+  <div class="profile-container">
+    <div class="profile-avatar">{{ user[3][0] }}</div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h2>Welcome, {{ user[3] }}</h2>
+    <p class="profile-info"><strong>Username:</strong> {{ user[1] }}</p>
+    <p class="profile-info"><strong>Password:</strong> {{ user[2] }}</p>
+    <p class="profile-info"><strong>Membership:</strong>
+      {% if user[7] == 'active' %}
+        <span style="color: green;">Premium</span>
+      {% else %}
+        <span style="color: red;">Free</span>
+      {% endif %}
+    </p>
+
+    {% if user[7] != 'active' %}
+      <a href="{{ url_for('membership') }}" class="membership-btn">Buy Membership</a>
+    {% endif %}
+
+    <!-- Change Password Button -->
+    <button type="button" class="change-btn" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+      Change Password
+    </button>
+
+    <!-- Previous Playlists Button -->
+    <a href="{{ url_for('my_playlists') }}" class="membership-btn">Previous Playlists</a>
+
+    <!-- Password Change Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered custom-modal-lg">
+        <form method="POST" action="{{ url_for('change_password') }}" onsubmit="return validatePasswordChangeForm()" class="w-100">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body custom-modal-body">
+              <div class="form-group mb-3">
+                <label for="modalCurrentPassword">Current Password</label>
+                <input type="password" class="form-control" id="modalCurrentPassword" name="current_password" required>
+              </div>
+              <div class="form-group mb-3">
+                <label for="modalNewPassword">New Password</label>
+                <input type="password" class="form-control" id="modalNewPassword" name="new_password" required>
+              </div>
+              <div class="form-group mb-3">
+                <label for="modalConfirmPassword">Confirm New Password</label>
+                <input type="password" class="form-control" id="modalConfirmPassword" name="confirm_password" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-success">Update Password</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <a href="{{ url_for('home') }}" class="home-btn">Back to Home</a>
+    <form action="{{ url_for('logout') }}" method="post">
+      <button type="submit" class="logout-btn">Logout</button>
+    </form>
+  </div>
+</body>
+</html>

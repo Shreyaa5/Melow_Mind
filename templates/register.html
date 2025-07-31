@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #DAF0F7;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; 
+            min-height: 100vh; 
+            padding: 20px 0; 
+            margin: 0;
+        }
+        .flash-message {
+            color: red;
+            background-color: #e8f5e9;
+            padding: 10px;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: center; 
+        }
+        .container {
+            background-color: #DAF0F7;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 320px;
+            text-align: center;
+        }
+        h2 {
+            color: #2e7d32;
+        }
+        label {
+            display: block;
+            text-align: left; 
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+        input[type="text"], input[type="password"], input[type="email"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        p {
+            margin-top: 20px;
+        }
+        .captcha-box {
+            margin-top: 15px;
+        }
+        .captcha-code {
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #2e7d32;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Create an Account</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('register') }}">
+            <label for="firstName">First Name:</label>
+            <input type="text" name="firstName" required>
+
+            <label for="lastName">Last Name:</label>
+            <input type="text" name="lastName" required>
+
+            <label for="emailId">Email Id:</label>
+            <input type="email" name="emailId" required>
+
+            <label for="phoneNumber">Mobile Number:</label>
+            <input type="number" name="phoneNumber" required>
+
+            <label for="username">Username:</label>
+            <input type="text" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" name="password" required>
+
+            <!-- Captcha part -->
+            <div class="captcha-box">
+                <label for="captcha">Enter the following code:</label>
+
+                <!-- Outer div to center captcha and refresh button -->
+                <div style="display: flex; justify-content: center; margin: 10px 0;">
+                    <!-- Inner div for captcha image and refresh button -->
+                    <div style="display: flex; align-items: center;">
+                        <img id="captcha_img_register" 
+                             src="{{ url_for('captcha_image') }}" 
+                             alt="Captcha Image" 
+                             style="width: 120px; height: 40px; border: 1px solid #ccc; padding: 5px; background-color: #f9f9f9;">
+            
+                        <button type="button" onclick="refreshCaptchaRegister()" 
+                                style="background: none; border: none; margin-left: 8px; cursor: pointer;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/61/61444.png" 
+                                 alt="Refresh" 
+                                 width="24px" 
+                                 height="24px">
+                        </button>
+                    </div>
+                </div>
+
+                <input type="text" name="captcha" placeholder="Enter Captcha" required>
+            </div>
+
+            <script>
+                function refreshCaptchaRegister() {
+                    fetch("{{ url_for('refresh_captcha') }}")
+                        .then(response => {
+                            var captcha = document.getElementById('captcha_img_register');
+                            captcha.src = "{{ url_for('captcha_image') }}" + "?t=" + Date.now();
+                        });
+                }
+            </script>
+
+            <button type="submit">Register</button>
+        </form>
+
+        <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+    </div>
+</body>
+</html>

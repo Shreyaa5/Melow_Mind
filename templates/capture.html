@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capture Live Photo</title>
+    <style>
+        body {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            /* background-image: url("/static/images/background.jpg"); */
+            background-image: radial-gradient(circle, rgba(105, 231, 210, 0.8), rgba(255, 255, 255, 0.5));
+            background-color: #DAF0F7; /* Fallback color */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            background-color: #DAF0F7; /* Fallback color */
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        video, canvas, img {
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .flash-message {
+            padding: 8px;
+            margin: 10px auto;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 60%;
+            max-width: 200px;
+            text-align: center;
+            transition: opacity 0.5s ease;
+            z-index: 9999;
+            position: relative;
+        }
+        .flash-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <h1>Capture Your Live Photo</h1>
+        <video id="video" autoplay></video>
+        <button id="capture">Capture</button>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <img id="photo" src="" alt="Captured Image" style="display:none;">
+        <button id="submitBtn" style="display:none;">Next</button>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const photo = document.getElementById('photo');
+        const captureButton = document.getElementById('capture');
+        const submitButton = document.getElementById('submitBtn');
+        
+
+        let stream;
+
+
+        // Set up camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(s => {
+            stream = s;
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            console.error('Camera error:', err);
+            alert('Failed to access webcam.');
+        });
+
+        // Stop camera stream
+         function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+        
+        // Capture image
+        captureButton.addEventListener('click', () => {
+            const MAX_WIDTH = 400;
+            const MAX_HEIGHT = 300;
+
+            canvas.width = MAX_WIDTH;
+            canvas.height = MAX_HEIGHT;
+            context.drawImage(video, 0, 0, MAX_WIDTH, MAX_HEIGHT);
+
+        // Show preview
+            photo.src = canvas.toDataURL('image/jpeg', 0.7);
+            photo.style.display = 'block';
+
+        // Show the Next button after capturing
+            submitButton.style.display = 'inline-block';
+        });
+
+        // Send image to Flask and render questions page
+        submitButton.addEventListener('click', () => {
+            stopCamera(); // Stop the camera stream
+            const base64Image = canvas.toDataURL('image/jpeg', 0.7);
+
+            fetch('/save_captured_image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64Image })
+            })
+            .then(response => response.text()) 
+            .then(html => {
+        // Replace current page content with new HTML
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => {
+                console.error('Error sending image:', error);
+                alert('An error occurred while sending the image.');
+            });
+        });
+    </script>
+</body>
+</html>
